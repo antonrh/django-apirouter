@@ -3,14 +3,13 @@ from dataclasses import dataclass, field
 from functools import wraps
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
-from django.core.exceptions import ImproperlyConfigured
 from django.urls import include
 from django.urls import path as url_path
 from django.urls.resolvers import URLPattern
 from django.utils.functional import cached_property
 from django.views.decorators.http import require_http_methods
 
-from apirouter.utils import http_method_dispatch
+from apirouter.utils import http_method_dispatch, removeprefix
 
 
 @dataclass
@@ -21,7 +20,7 @@ class RouteMixin:
 
 
 @dataclass
-class Route(RouteMixin):
+class APIRoute(RouteMixin):
     method: str = "GET"
 
 
@@ -32,21 +31,21 @@ class DispatchRoute(RouteMixin):
 
 @dataclass
 class IncludeRoute:
-    router: "Router"
-    prefix: Optional[str] = None
+    router: "APIRouter"
+    prefix: str = ""
 
 
-RouteType = Union[Route, DispatchRoute, IncludeRoute]
+RouteType = Union[APIRoute, DispatchRoute, IncludeRoute]
 
 
-class Router:
+class APIRouter:
     def __init__(self, *, name: Optional[str] = None):
         self.name = name
         self._routes: List[RouteType] = []
 
-    def include_router(self, router: "Router", *, prefix: Optional[str] = None) -> None:
-        if prefix and prefix.startswith("/"):
-            raise ImproperlyConfigured("A path prefix must not start with '/'")
+    def include_router(self, router: "APIRouter", *, prefix: str = "") -> None:
+        if prefix:
+            prefix = removeprefix(prefix, prefix="/")
         self._routes.append(IncludeRoute(router=router, prefix=prefix))
 
     def add_route(
@@ -59,7 +58,7 @@ class Router:
     ) -> None:
         methods = methods or ["GET"]
         if len(methods) == 1:
-            route = Route(path=path, func=func, name=name, method=methods[0])
+            route = APIRoute(path=path, func=func, name=name, method=methods[0])
         else:
             route = DispatchRoute(path=path, func=func, name=name, methods=methods)
         self._routes.append(route)
@@ -71,8 +70,7 @@ class Router:
         methods: Optional[List[str]] = None,
         name: Optional[str] = None,
     ) -> Callable:
-        if path.startswith("/"):
-            path = path[1:]  # remove prefix
+        path = removeprefix(path, prefix="/")
 
         def decorator(func: Callable):
             self.add_route(path, func, methods=methods, name=name)
@@ -105,18 +103,18 @@ class Router:
         return self.route(path, methods=["TRACE"], name=name)
 
     @cached_property
-    def urls(self) -> Union[Tuple[List[URLPattern], str], List[URLPattern]]:
+    def urls(self) -> List[URLPattern]:
         urls = self._build_urls()
         if self.name:
-            return urls, self.name
+            return [url_path("", include((urls, self.name)))]
         return urls
 
     def _build_urls(self) -> List[URLPattern]:
         ordered: Dict[str, URLPattern] = {}
-        routes: Dict[str, List[Route]] = defaultdict(list)
+        routes: Dict[str, List[APIRoute]] = defaultdict(list)
 
         for route in self._routes:
-            if isinstance(route, Route):
+            if isinstance(route, APIRoute):
                 routes[route.path].append(route)
                 ordered[route.path] = url_path(
                     route.path,
@@ -136,7 +134,7 @@ class Router:
                     name=route.name,
                 )
             elif isinstance(route, IncludeRoute):
-                ordered[route.prefix] = url_path(
+                ordered[route.prefix + str(id(route))] = url_path(
                     route.prefix, include(route.router.urls)
                 )
 
