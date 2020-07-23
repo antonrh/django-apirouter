@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import Callable, Dict, List, Optional
 
-from django.urls import path as _path
+from django.urls import path as url_path
 from django.urls.resolvers import URLPattern
 from django.utils.functional import cached_property
 from django.views.decorators.http import require_http_methods
@@ -89,7 +89,7 @@ class APIRouter:
 
             if len(routes) > 1:
                 ret.append(
-                    _path(
+                    url_path(
                         path,
                         view=method_dispatch(
                             **{
@@ -103,7 +103,7 @@ class APIRouter:
             else:
                 route = routes[0]
                 ret.append(
-                    _path(
+                    url_path(
                         route.path,
                         view=require_http_methods(route.methods)(route.func),
                         name=route.name,
