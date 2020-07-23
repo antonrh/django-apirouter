@@ -1,5 +1,10 @@
+from dataclasses import dataclass
+from typing import Optional
+
+
+@dataclass()
 class APIRoute:
-    pass
+    name: Optional[str] = None
 
 
 class APIRouter:
