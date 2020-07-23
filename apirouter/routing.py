@@ -1,12 +1,13 @@
 from collections import defaultdict
-from typing import Callable, Dict, List, Optional
+from functools import wraps
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 from django.urls import path as url_path
 from django.urls.resolvers import URLPattern
 from django.utils.functional import cached_property
 from django.views.decorators.http import require_http_methods
 
-from apirouter.utils import method_dispatch
+from apirouter.utils import http_method_dispatch
 
 
 class APIRoute:
@@ -25,7 +26,8 @@ class APIRoute:
 
 
 class APIRouter:
-    def __init__(self):
+    def __init__(self, *, name: Optional[str] = None):
+        self.name = name
         self._routes: Dict[str, List[APIRoute]] = defaultdict(list)
 
     def add_route(
@@ -78,22 +80,25 @@ class APIRouter:
         return self.route(path, methods=["TRACE"], name=name)
 
     @cached_property
-    def urls(self) -> List[URLPattern]:
-        return self._build_urls()
+    def urls(self) -> Union[Tuple[List[URLPattern], str], List[URLPattern]]:
+        urls = self._build_urls()
+        if self.name:
+            return urls, self.name
+        return urls
 
     def _build_urls(self) -> List[URLPattern]:
-        ret = []
+        urls = []
         for path, routes in self._routes.items():
             if not routes:
                 continue
 
             if len(routes) > 1:
-                ret.append(
+                urls.append(
                     url_path(
                         path,
-                        view=method_dispatch(
+                        view=http_method_dispatch(
                             **{
-                                route.methods[0]: route.func
+                                route.methods[0]: self._handle_view(route.func)
                                 for route in routes
                                 if route.methods
                             }
@@ -102,11 +107,20 @@ class APIRouter:
                 )
             else:
                 route = routes[0]
-                ret.append(
+                urls.append(
                     url_path(
                         route.path,
-                        view=require_http_methods(route.methods)(route.func),
+                        view=require_http_methods(route.methods)(
+                            self._handle_view(route.func)
+                        ),
                         name=route.name,
                     )
                 )
-        return ret
+        return urls
+
+    def _handle_view(self, func: Callable):
+        @wraps(func)
+        def inner(request, *args, **kwargs):
+            return func(request, *args, **kwargs)
+
+        return inner
