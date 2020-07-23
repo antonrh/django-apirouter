@@ -1,20 +1,20 @@
 from django.http import HttpResponse
 
-from apirouter import APIRouter
+from apirouter import Router
 
-router = APIRouter()
+router = Router()
 
 
-@router.route("method/", methods=["GET", "POST"])
+@router.route("/method/", methods=["GET", "POST"])
 def method(request):
     return HttpResponse(f"METHOD {request.method}")
 
 
-@router.get("dispatch/")
+@router.get("/dispatch/")
 def dispatch_get(request):
     return HttpResponse("DISPATCH GET")
 
 
-@router.post("dispatch/")
+@router.post("/dispatch/")
 def dispatch_post(request):
     return HttpResponse("DISPATCH POST")
