@@ -1,6 +1,8 @@
 from dataclasses import dataclass
+from functools import wraps
 from typing import Callable, List, Optional, Type, Union
 
+from django.http import HttpRequest, HttpResponse
 from django.urls import include
 from django.urls import path as url_path
 from django.urls.resolvers import URLPattern
@@ -9,7 +11,10 @@ from django.utils.functional import cached_property
 from django.views import View
 from django.views.decorators.http import require_http_methods
 
-from apirouter.utils import compose_decorators, removeprefix
+from apirouter.decorators import compose_decorators
+from apirouter.exception_handler import exception_handler as default_exception_handler
+from apirouter.request import Request
+from apirouter.utils import removeprefix
 
 
 @dataclass
@@ -35,19 +40,28 @@ class APIIncludeRoute:
 
 
 APIRouteType = Union[APIViewFuncRoute, APIViewClassRoute, APIIncludeRoute]
+ExceptionHandlerType = Callable[[Request, Exception], HttpResponse]
 
 
 class APIRouter:
     def __init__(
-        self, *, name: Optional[str] = None, middleware: Optional[List[Callable]] = None
+        self,
+        *,
+        name: Optional[str] = None,
+        middleware_classes: Optional[List[Callable]] = None,
+        exception_handler: Optional[ExceptionHandlerType] = None,
     ):
         self.name = name
-        self.middleware = middleware or []
+        self.middleware_classes = middleware_classes or []
+        self.exception_handler = exception_handler or default_exception_handler
         self.routes: List[APIRouteType] = []
 
     @cached_property
     def middleware_decorators(self) -> List[Callable]:
-        return [decorator_from_middleware(middleware) for middleware in self.middleware]
+        return [
+            decorator_from_middleware(middleware_class)
+            for middleware_class in reversed(self.middleware_classes)
+        ]
 
     @cached_property
     def urls(self) -> List[URLPattern]:
@@ -142,19 +156,26 @@ class APIRouter:
         return self.route(path, methods=["TRACE"], name=name)
 
     def _build_urls(self) -> List[URLPattern]:
-        urls: List[URLPattern] = []
+        """
+        Build Django URL patterns sequence.
+        """
+        urlpatterns: List[URLPattern] = []
 
         for route in self.routes:
             if isinstance(route, APIIncludeRoute):
-                urls.append(url_path(route.prefix, include(route.router.urls)))
+                urlpatterns.append(url_path(route.prefix, include(route.router.urls)))
             else:
-                urls.append(
+                urlpatterns.append(
                     url_path(route.path, view=self._handle(route), name=route.name)
                 )
 
-        return urls
+        return urlpatterns
 
     def _handle(self, route: Union[APIViewFuncRoute, APIViewClassRoute]) -> Callable:
+        """
+        Handle route.
+        """
+
         if isinstance(route, APIViewClassRoute):
             view_func = route.view_class.as_view()
         else:
@@ -162,4 +183,14 @@ class APIRouter:
                 view_func = require_http_methods(route.methods)(route.view_func)
             else:
                 view_func = route.view_func
-        return compose_decorators(*self.middleware_decorators)(view_func)
+
+        @wraps(view_func)
+        def wrapped_view(request: HttpRequest, *args, **kwargs) -> HttpResponse:
+            wrapped_request = Request(request)
+            try:
+                response = view_func(wrapped_request, *args, **kwargs)
+                return response
+            except Exception as exc:
+                return self.exception_handler(wrapped_request, exc)
+
+        return compose_decorators(*self.middleware_decorators)(wrapped_view)

@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from django.views import View
 
 from apirouter import APIRouter
+from tests.middleware import TestMiddleware
 
 router = APIRouter(name="root")
 
@@ -63,3 +64,24 @@ class RootIndexView(View):
 
     def post(self, request):
         return HttpResponse("POST /view")
+
+
+include_router = APIRouter()
+
+
+@include_router.get("/get")
+def include_get(request):
+    return HttpResponse("GET /include/get")
+
+
+router.include_router(include_router, prefix="/include/")
+
+middleware_router = APIRouter(name="middleware", middleware_classes=[TestMiddleware])
+
+
+@middleware_router.get("/get", name="middleware_get")
+def middleware_get(request):
+    return HttpResponse("GET /middleware/get")
+
+
+router.include_router(middleware_router, prefix="/middleware/")
