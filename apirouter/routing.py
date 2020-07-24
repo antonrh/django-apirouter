@@ -121,7 +121,7 @@ class APIRouter:
 
     def _handle(self, route: APIRoute):
         if isinstance(route.view, View):
-            return route.view
+            return route.view.as_view()
         else:
             if route.methods:
                 return require_http_methods(route.methods)(route.view)
