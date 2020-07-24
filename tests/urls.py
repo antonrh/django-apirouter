@@ -1,5 +1,3 @@
-from apirouter import APIRouter
-
-router = APIRouter(name="test")
+from tests.routes import router
 
 urlpatterns = router.urls

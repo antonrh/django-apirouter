@@ -80,7 +80,7 @@ class APIRouter:
         *,
         name: Optional[str] = None,
         decorators: Optional[List[Callable]] = None,
-    ):
+    ) -> None:
         self.routes.append(
             APIViewClassRoute(
                 path=path, view_class=view_class, name=name, decorators=decorators
