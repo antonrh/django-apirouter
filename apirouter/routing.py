@@ -1,32 +1,22 @@
-from collections import defaultdict
-from dataclasses import dataclass, field
-from functools import wraps
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from dataclasses import dataclass
+from typing import Callable, List, Optional, Type, Union
 
 from django.urls import include
 from django.urls import path as url_path
 from django.urls.resolvers import URLPattern
 from django.utils.functional import cached_property
+from django.views import View
 from django.views.decorators.http import require_http_methods
 
-from apirouter.utils import http_method_dispatch, removeprefix
+from apirouter.utils import removeprefix
 
 
 @dataclass
-class RouteMixin:
+class APIRoute:
     path: str
-    func: Callable
+    view: Union[Callable, Type[View]]
     name: Optional[str] = None
-
-
-@dataclass
-class APIRoute(RouteMixin):
-    method: str = "GET"
-
-
-@dataclass
-class DispatchRoute(RouteMixin):
-    methods: List[str] = field(default_factory=lambda: ["GET"])
+    methods: Optional[List[str]] = None
 
 
 @dataclass
@@ -35,7 +25,7 @@ class IncludeRoute:
     prefix: str = ""
 
 
-RouteType = Union[APIRoute, DispatchRoute, IncludeRoute]
+RouteType = Union[APIRoute, IncludeRoute]
 
 
 class APIRouter:
@@ -56,12 +46,10 @@ class APIRouter:
         methods: Optional[List[str]] = None,
         name: Optional[str] = None,
     ) -> None:
-        methods = methods or ["GET"]
-        if len(methods) == 1:
-            route = APIRoute(path=path, func=func, name=name, method=methods[0])
-        else:
-            route = DispatchRoute(path=path, func=func, name=name, methods=methods)
-        self._routes.append(route)
+        self._routes.append(APIRoute(path=path, view=func, name=name, methods=methods))
+
+    def add_view(self, path: str, view: Type[View], *, name: Optional[str] = None):
+        self._routes.append(APIRoute(path=path, view=view, name=name))
 
     def route(
         self,
@@ -75,6 +63,15 @@ class APIRouter:
         def decorator(func: Callable):
             self.add_route(path, func, methods=methods, name=name)
             return func
+
+        return decorator
+
+    def view(self, path: str, *, name: Optional[str] = None):
+        path = removeprefix(path, prefix="/")
+
+        def decorator(view: Type[View]) -> Callable:
+            self.add_view(path, view, name=name)
+            return view
 
         return decorator
 
@@ -110,39 +107,22 @@ class APIRouter:
         return urls
 
     def _build_urls(self) -> List[URLPattern]:
-        ordered: Dict[str, URLPattern] = {}
-        routes: Dict[str, List[APIRoute]] = defaultdict(list)
+        urls: List[URLPattern] = []
 
         for route in self._routes:
             if isinstance(route, APIRoute):
-                routes[route.path].append(route)
-                ordered[route.path] = url_path(
-                    route.path,
-                    view=http_method_dispatch(
-                        **{
-                            route.method: self._handle_view(route.func)
-                            for route in routes[route.path]
-                        }
-                    ),
-                )
-            elif isinstance(route, DispatchRoute):
-                ordered[route.path] = url_path(
-                    route.path,
-                    view=require_http_methods(route.methods)(
-                        self._handle_view(route.func)
-                    ),
-                    name=route.name,
+                urls.append(
+                    url_path(route.path, view=self._handle(route), name=route.name)
                 )
             elif isinstance(route, IncludeRoute):
-                ordered[route.prefix + str(id(route))] = url_path(
-                    route.prefix, include(route.router.urls)
-                )
+                urls.append(url_path(route.prefix, include(route.router.urls)))
 
-        return list(ordered.values())
+        return urls
 
-    def _handle_view(self, func: Callable):
-        @wraps(func)
-        def inner(request, *args, **kwargs):
-            return func(request, *args, **kwargs)
-
-        return inner
+    def _handle(self, route: APIRoute):
+        if isinstance(route.view, View):
+            return route.view
+        else:
+            if route.methods:
+                return require_http_methods(route.methods)(route.view)
+            return route.view
