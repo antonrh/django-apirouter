@@ -13,3 +13,6 @@ lint: ## Run code linters
 fmt format: ## Run code formatters
 	isort apirouter tests
 	black apirouter tests
+
+requirements:  ## Make requirements
+	poetry export -f requirements.txt -E docs > requirements.docs.txt
