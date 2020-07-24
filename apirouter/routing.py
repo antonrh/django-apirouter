@@ -31,12 +31,12 @@ RouteType = Union[APIRoute, IncludeRoute]
 class APIRouter:
     def __init__(self, *, name: Optional[str] = None):
         self.name = name
-        self._routes: List[RouteType] = []
+        self.routes: List[RouteType] = []
 
     def include_router(self, router: "APIRouter", *, prefix: str = "") -> None:
         if prefix:
             prefix = removeprefix(prefix, prefix="/")
-        self._routes.append(IncludeRoute(router=router, prefix=prefix))
+        self.routes.append(IncludeRoute(router=router, prefix=prefix))
 
     def add_route(
         self,
@@ -46,10 +46,10 @@ class APIRouter:
         methods: Optional[List[str]] = None,
         name: Optional[str] = None,
     ) -> None:
-        self._routes.append(APIRoute(path=path, view=func, name=name, methods=methods))
+        self.routes.append(APIRoute(path=path, view=func, name=name, methods=methods))
 
     def add_view(self, path: str, view: Type[View], *, name: Optional[str] = None):
-        self._routes.append(APIRoute(path=path, view=view, name=name))
+        self.routes.append(APIRoute(path=path, view=view, name=name))
 
     def route(
         self,
@@ -66,7 +66,7 @@ class APIRouter:
 
         return decorator
 
-    def view(self, path: str, *, name: Optional[str] = None):
+    def view(self, path: str, *, name: Optional[str] = None) -> Callable:
         path = removeprefix(path, prefix="/")
 
         def decorator(view: Type[View]) -> Callable:
@@ -109,7 +109,7 @@ class APIRouter:
     def _build_urls(self) -> List[URLPattern]:
         urls: List[URLPattern] = []
 
-        for route in self._routes:
+        for route in self.routes:
             if isinstance(route, APIRoute):
                 urls.append(
                     url_path(route.path, view=self._handle(route), name=route.name)
