@@ -1,0 +1,18 @@
+site_name: Django APIRouter
+site_description: Django API Router
+site_author: Anton Ruhlov
+
+theme:
+  name: 'material'
+
+repo_name: antonrh/django-apirouter
+repo_url: https://github.com/antonrh/django-apirouter
+edit_uri: ""
+
+nav:
+- Introduction: 'index.md'
+
+markdown_extensions:
+  - markdown.extensions.codehilite:
+      guess_lang: false
+  - mkautodoc

@@ -24,6 +24,9 @@ pytest = "^5.4.3"
 pytest-cov = "^2.10.0"
 pytest-django = "^3.9.0"
 bump2version = "^1.0.0"
+mkdocs = "^1.1.2"
+mkdocs-material = "^5.5.0"
+mkautodoc = "^0.1.0"
 
 [tool.isort]
 profile = "black"
