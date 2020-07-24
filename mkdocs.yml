@@ -10,7 +10,7 @@ repo_url: https://github.com/antonrh/django-apirouter
 edit_uri: ""
 
 nav:
-- Introduction: 'index.md'
+- APIRouter: 'index.md'
 
 markdown_extensions:
   - markdown.extensions.codehilite:
