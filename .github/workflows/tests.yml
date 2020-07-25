@@ -56,7 +56,7 @@ jobs:
           poetry config virtualenvs.create false
           poetry install -n
       - name: Run tests
-        run: pytest --cov=apirouter
+        run: pytest -vv --cov=apirouter --cov-report=term-missing --cov-report=xml
       - uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
