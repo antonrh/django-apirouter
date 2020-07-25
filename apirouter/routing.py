@@ -1,7 +1,7 @@
-from dataclasses import dataclass
 from functools import wraps
 from typing import Callable, List, Optional, Type, Union
 
+import attr
 from django.http import HttpRequest, HttpResponse
 from django.urls import include
 from django.urls import path as url_path
@@ -17,7 +17,7 @@ from apirouter.request import Request
 from apirouter.utils import removeprefix
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class APIViewFuncRoute:
     path: str
     view_func: Callable
@@ -25,7 +25,7 @@ class APIViewFuncRoute:
     methods: Optional[List[str]] = None
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class APIViewClassRoute:
     path: str
     view_class: Type[View]
@@ -33,7 +33,7 @@ class APIViewClassRoute:
     decorators: Optional[List[Callable]] = None
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class APIIncludeRoute:
     router: "APIRouter"
     prefix: str = ""
