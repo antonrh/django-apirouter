@@ -2,7 +2,7 @@ from functools import wraps
 from typing import Callable, List, Optional, Type, Union
 
 import attr
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import HttpRequest, HttpResponse
 from django.urls import include
 from django.urls import path as url_path
 from django.urls.resolvers import URLPattern
@@ -14,6 +14,7 @@ from django.views.decorators.http import require_http_methods
 from apirouter.decorators import compose_decorators
 from apirouter.exception_handler import exception_handler as default_exception_handler
 from apirouter.request import Request
+from apirouter.response import JsonResponse
 from apirouter.utils import removeprefix
 
 
