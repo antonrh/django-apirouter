@@ -179,11 +179,12 @@ class APIRouter:
 
         if isinstance(route, APIViewClassRoute):
             view_func = route.view_class.as_view()
+            if route.decorators:
+                view_func = compose_decorators(route.decorators)(view_func)
         else:
+            view_func = route.view_func
             if route.methods:
                 view_func = require_http_methods(route.methods)(route.view_func)
-            else:
-                view_func = route.view_func
 
         @wraps(view_func)
         def wrapped_view(request: HttpRequest, *args, **kwargs) -> HttpResponse:
