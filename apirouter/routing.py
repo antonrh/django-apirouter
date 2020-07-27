@@ -2,7 +2,7 @@ from functools import wraps
 from typing import Callable, List, Optional, Type, Union
 
 import attr
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.urls import include
 from django.urls import path as url_path
 from django.urls.resolvers import URLPattern
@@ -189,6 +189,8 @@ class APIRouter:
             wrapped_request = Request(request)
             try:
                 response = view_func(wrapped_request, *args, **kwargs)
+                if not isinstance(response, HttpResponse):
+                    return JsonResponse(response, safe=False)
                 return response
             except Exception as exc:
                 return self.exception_handler(wrapped_request, exc)
