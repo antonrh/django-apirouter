@@ -1,6 +1,8 @@
 from typing import Any
 
 from django.http import HttpRequest
+from django.http.request import HttpHeaders
+from django.utils.functional import cached_property
 
 
 class Request:
@@ -16,3 +18,11 @@ class Request:
     @property
     def method(self) -> str:
         return self._request.method
+
+    @property
+    def path(self) -> str:
+        return self._request.path
+
+    @cached_property
+    def headers(self) -> HttpHeaders:
+        return self._request.headers
