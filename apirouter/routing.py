@@ -1,13 +1,15 @@
 from functools import wraps
-from typing import Callable, List, Optional, Type, Union
+from typing import Callable, List, Optional, Type, Union, cast
 
 import attr
+from django.conf import settings
 from django.http import HttpRequest, HttpResponse
 from django.urls import include
 from django.urls import path as url_path
 from django.urls.resolvers import URLPattern
 from django.utils.decorators import decorator_from_middleware
 from django.utils.functional import cached_property
+from django.utils.module_loading import import_string
 from django.views import View
 from django.views.decorators.http import require_http_methods
 
@@ -54,7 +56,9 @@ class APIRouter:
     ):
         self.name = name
         self.middleware_classes = middleware_classes or []
-        self.exception_handler = exception_handler or default_exception_handler
+        self.exception_handler = (
+            exception_handler or self._get_default_exception_handler()
+        )
         self.routes: List[APIRouteType] = []
 
     @cached_property
@@ -198,3 +202,13 @@ class APIRouter:
                 return self.exception_handler(wrapped_request, exc)
 
         return compose_decorators(*self.middleware_decorators)(wrapped_view)
+
+    def _get_default_exception_handler(self) -> ExceptionHandlerType:
+        exception_handler: Union[str, ExceptionHandlerType] = getattr(
+            settings, "APIROUTER_EXCEPTION_HANDLER", default_exception_handler
+        )
+        if isinstance(exception_handler, str):
+            exception_handler = cast(
+                ExceptionHandlerType, import_string(exception_handler)
+            )
+        return exception_handler
