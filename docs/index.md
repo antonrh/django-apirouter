@@ -39,7 +39,7 @@ urlpatterns = router.urls
 
 ## Check it
 
-`https://127.0.0.1:8000/hello`
+***GET** https://127.0.0.1:8000/hello*
 
 Response [200 OK]:
 
