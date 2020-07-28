@@ -192,7 +192,7 @@ class APIRouter:
             try:
                 response = view_func(wrapped_request, *args, **kwargs)
                 if not isinstance(response, HttpResponse):
-                    return JsonResponse(response, safe=False)
+                    return JsonResponse(response)
                 return response
             except Exception as exc:
                 return self.exception_handler(wrapped_request, exc)
