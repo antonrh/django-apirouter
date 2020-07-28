@@ -10,9 +10,11 @@ repo_url: https://github.com/antonrh/django-apirouter
 edit_uri: ""
 
 nav:
-- Routing: 'index.md'
+- Introduction: 'index.md'
+- Routing: 'routing.md'
 - Request: 'request.md'
 - Response: 'response.md'
+- OpenAPI: 'openapi.md'
 - Settings: 'settings.md'
 
 markdown_extensions:

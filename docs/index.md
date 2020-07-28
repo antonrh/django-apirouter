@@ -11,4 +11,38 @@ Django API router component.
 
 ---
 
-TODO:
+## Installing
+
+Install using `pip`:
+
+```
+pip install django-apirouter
+```
+
+## Example
+
+In Django project `urls.py`:
+
+```python
+from apirouter import APIRouter, Request
+
+router = APIRouter()
+
+
+@router.route("/hello")
+def index(request: Request):
+    return "Hello, Django APIRouter!"
+
+
+urlpatterns = router.urls
+```
+
+## Check it
+
+`https://127.0.0.1:8000/hello`
+
+Response [200 OK]:
+
+```json
+"Hello, Django APIRouter!"
+```
