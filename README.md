@@ -2,7 +2,7 @@
 
 Django API router component.
 
-*Inspired by [FastAPI](https://fastapi.tiangolo.com/) router.*
+*Inspired by [FastAPI](https://fastapi.tiangolo.com/) and [Django Rest Framework](https://www.django-rest-framework.org/).*
 
 ![tests](https://github.com/antonrh/django-apirouter/workflows/tests/badge.svg)
 [![codecov](https://codecov.io/gh/antonrh/django-apirouter/branch/master/graph/badge.svg)](https://codecov.io/gh/antonrh/django-apirouter)
@@ -10,6 +10,10 @@ Django API router component.
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![version](https://img.shields.io/pypi/v/django-apirouter.svg)](https://pypi.org/project/django-apirouter/)
 [![license](https://img.shields.io/pypi/l/django-apirouter)](https://github.com/antonrh/django-apirouter/blob/master/LICENSE)
+
+---
+
+Documentation: https://django-apirouter.readthedocs.io/
 
 ---
 
