@@ -1,20 +1,22 @@
 from functools import wraps
-from typing import Callable, List, Optional, Type, Union, cast
+from typing import Callable, List, Optional, Type, Union
 
 import attr
-from django.conf import settings
 from django.http import HttpRequest, HttpResponse
 from django.urls import include, path as url_path
 from django.urls.resolvers import URLPattern
 from django.utils.functional import cached_property
-from django.utils.module_loading import import_string
 from django.views import View
 from django.views.decorators.http import require_http_methods
 
+from apirouter.conf import (
+    get_default_exception_handler,
+    get_default_request_class,
+    get_default_response_class,
+)
 from apirouter.decorators import compose_decorators
-from apirouter.exception_handler import exception_handler as default_exception_handler
 from apirouter.request import Request
-from apirouter.response import JsonResponse
+from apirouter.types import ExceptionHandlerType
 from apirouter.utils import removeprefix
 
 
@@ -53,7 +55,6 @@ class APIIncludeRoute:
 
 
 APIRouteType = Union[APIViewFuncRoute, APIViewClassRoute, APIIncludeRoute]
-ExceptionHandlerType = Callable[[Request, Exception], HttpResponse]
 
 
 class APIRouter:
@@ -68,11 +69,9 @@ class APIRouter:
     ):
         self.name = name
         self.decorators = decorators or []
-        self.exception_handler = (
-            exception_handler or self._get_default_exception_handler()
-        )
-        self.request_class = request_class or self._get_default_request_class()
-        self.response_class = response_class or self._get_default_response_class()
+        self.exception_handler = exception_handler or get_default_exception_handler()
+        self.request_class = request_class or get_default_request_class()
+        self.response_class = response_class or get_default_response_class()
         self.routes: List[APIRouteType] = []
 
     @cached_property
@@ -201,32 +200,3 @@ class APIRouter:
                 return self.exception_handler(wrapped_request, exc)
 
         return wrapped_view
-
-    @staticmethod
-    def _get_default_exception_handler() -> ExceptionHandlerType:
-        exception_handler: Union[str, ExceptionHandlerType] = getattr(
-            settings, "APIROUTER_DEFAULT_EXCEPTION_HANDLER", default_exception_handler
-        )
-        if isinstance(exception_handler, str):
-            exception_handler = cast(
-                ExceptionHandlerType, import_string(exception_handler)
-            )
-        return exception_handler
-
-    @staticmethod
-    def _get_default_request_class() -> Type[Request]:
-        request_class: Union[str, Type[Request]] = getattr(
-            settings, "APIROUTER_DEFAULT_REQUEST_CLASS", Request
-        )
-        if isinstance(request_class, str):
-            request_class = cast(Type[Request], import_string(request_class))
-        return request_class
-
-    @staticmethod
-    def _get_default_response_class() -> Type[HttpResponse]:
-        response_class: Union[str, Type[HttpResponse]] = getattr(
-            settings, "APIROUTER_DEFAULT_RESPONSE_CLASS", JsonResponse
-        )
-        if isinstance(response_class, str):
-            response_class = cast(Type[HttpResponse], import_string(response_class))
-        return response_class
