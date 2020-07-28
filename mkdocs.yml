@@ -11,6 +11,7 @@ edit_uri: ""
 
 nav:
 - APIRouter: 'index.md'
+- Settings: 'settings.md'
 
 markdown_extensions:
   - markdown.extensions.codehilite:
