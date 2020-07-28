@@ -1,15 +1,10 @@
 import http
 from typing import Any, Optional
 
-from django.http.request import HttpHeaders
-
 
 class APIException(Exception):
     def __init__(
-        self,
-        status_code: int,
-        detail: Any = None,
-        headers: Optional[HttpHeaders] = None,
+        self, status_code: int, detail: Any = None, headers: Optional[dict] = None
     ):
         if detail is None:
             detail = http.HTTPStatus.__call__(status_code).phrase
