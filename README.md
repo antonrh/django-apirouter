@@ -1,4 +1,4 @@
-# Django APIRouter
+# Django APIRouter (in progress)
 
 Django API router component.
 
@@ -42,3 +42,12 @@ def index(request: Request):
 
 urlpatterns = router.urls
 ```
+
+## TODO:
+
+* Documentation
+* Custom request / response classes
+* OpenAPI support (Swagger, ReDoc)
+* Pydantic support
+* Async views support (with Django 3.1)
+* etc.
