@@ -205,7 +205,7 @@ class APIRouter:
 
     def _get_default_exception_handler(self) -> ExceptionHandlerType:
         exception_handler: Union[str, ExceptionHandlerType] = getattr(
-            settings, "APIROUTER_EXCEPTION_HANDLER", default_exception_handler
+            settings, "APIROUTER_DEFAULT_EXCEPTION_HANDLER", default_exception_handler
         )
         if isinstance(exception_handler, str):
             exception_handler = cast(

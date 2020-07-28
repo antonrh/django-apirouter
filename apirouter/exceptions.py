@@ -16,3 +16,6 @@ class APIException(Exception):
         self.status_code = status_code
         self.detail = detail
         self.headers = headers
+
+    def __str__(self):
+        return self.detail
