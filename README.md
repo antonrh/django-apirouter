@@ -30,15 +30,14 @@ pip install django-apirouter
 *project/urls.py*
 
 ```python
-from apirouter import APIRouter
-from django.http import HttpResponse
+from apirouter import APIRouter, Request
 
 router = APIRouter()
 
 
 @router.route("/")
-def index(request):
-    return HttpResponse("Hello, Django APIRouter!")
+def index(request: Request):
+    return "Hello, Django APIRouter!"
 
 
 urlpatterns = router.urls
