@@ -32,6 +32,7 @@ safety = "^1.9.0"
 
 [tool.isort]
 profile = "black"
+combine_as_imports = true
 src_paths = ["apirouter", "tests"]
 
 [build-system]

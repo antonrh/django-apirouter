@@ -4,8 +4,7 @@ from typing import Callable, List, Optional, Type, Union, cast
 import attr
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
-from django.urls import include
-from django.urls import path as url_path
+from django.urls import include, path as url_path
 from django.urls.resolvers import URLPattern
 from django.utils.decorators import decorator_from_middleware
 from django.utils.functional import cached_property
@@ -54,6 +53,7 @@ class APIRouter:
         middleware_classes: Optional[List[Callable]] = None,
         exception_handler: Optional[ExceptionHandlerType] = None,
         request_class: Optional[Type[Request]] = None,
+        response_class: Optional[Type[HttpResponse]] = None,
     ):
         self.name = name
         self.middleware_classes = middleware_classes or []
@@ -61,6 +61,7 @@ class APIRouter:
             exception_handler or self._get_default_exception_handler()
         )
         self.request_class = request_class or self._get_default_request_class()
+        self.response_class = response_class or self._get_default_response_class()
         self.routes: List[APIRouteType] = []
 
     @cached_property
@@ -198,7 +199,7 @@ class APIRouter:
             try:
                 response = view_func(wrapped_request, *args, **kwargs)
                 if not isinstance(response, HttpResponse):
-                    return JsonResponse(response)
+                    return self.response_class(response)
                 return response
             except Exception as exc:
                 return self.exception_handler(wrapped_request, exc)
@@ -222,3 +223,11 @@ class APIRouter:
         if isinstance(request_class, str):
             request_class = cast(Type[Request], import_string(request_class))
         return request_class
+
+    def _get_default_response_class(self) -> Type[HttpResponse]:
+        response_class: Union[str, Type[HttpResponse]] = getattr(
+            settings, "APIROUTER_DEFAULT_RESPONSE_CLASS", JsonResponse
+        )
+        if isinstance(response_class, str):
+            response_class = cast(Type[HttpResponse], import_string(response_class))
+        return response_class
