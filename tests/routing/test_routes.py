@@ -107,6 +107,12 @@ def test_method_not_allowed(client):
     assert response["Allow"] == "GET, POST"
 
 
+def test_method_get_route(client):
+    response = client.get("/method/get")
+
+    assert response.status_code == 200
+
+
 def test_view_get(client):
     response = client.get("/view")
 

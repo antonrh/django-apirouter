@@ -17,6 +17,7 @@ nav:
 - Routing: routing.md
 - Request: request.md
 - Response: response.md
+- Decorators: decorators.md
 - OpenAPI: openapi.md
 - Settings: settings.md
 
