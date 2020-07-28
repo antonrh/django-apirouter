@@ -46,7 +46,7 @@ urlpatterns = router.urls
 ## TODO:
 
 * Documentation
-* Custom request / response classes
+* Custom response classes
 * OpenAPI support (Swagger, ReDoc)
 * Pydantic support
 * Async views support (with Django 3.1)

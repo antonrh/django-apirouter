@@ -53,12 +53,14 @@ class APIRouter:
         name: Optional[str] = None,
         middleware_classes: Optional[List[Callable]] = None,
         exception_handler: Optional[ExceptionHandlerType] = None,
+        request_class: Optional[Type[Request]] = None,
     ):
         self.name = name
         self.middleware_classes = middleware_classes or []
         self.exception_handler = (
             exception_handler or self._get_default_exception_handler()
         )
+        self.request_class = request_class or self._get_default_request_class()
         self.routes: List[APIRouteType] = []
 
     @cached_property
@@ -192,7 +194,7 @@ class APIRouter:
 
         @wraps(view_func)
         def wrapped_view(request: HttpRequest, *args, **kwargs) -> HttpResponse:
-            wrapped_request = Request(request)
+            wrapped_request = self.request_class(request)
             try:
                 response = view_func(wrapped_request, *args, **kwargs)
                 if not isinstance(response, HttpResponse):
@@ -212,3 +214,11 @@ class APIRouter:
                 ExceptionHandlerType, import_string(exception_handler)
             )
         return exception_handler
+
+    def _get_default_request_class(self) -> Type[Request]:
+        request_class: Union[str, Type[Request]] = getattr(
+            settings, "APIROUTER_DEFAULT_REQUEST_CLASS", Request
+        )
+        if isinstance(request_class, str):
+            request_class = cast(Type[Request], import_string(request_class))
+        return request_class
