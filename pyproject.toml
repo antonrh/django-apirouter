@@ -14,10 +14,10 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.6"
 django = "^3.0.8"
+attrs = "^19.3.0"
 mkdocs = {version = "^1.1.2", extras = ["docs"]}
 mkdocs-material = {version = "^5.5.0", extras = ["docs"]}
-mkautodoc = {version = "^0.1.0", extras = ["docs"]}
-attrs = "^19.3.0"
+mkdocstrings = {version = "^0.12.2", extras = ["docs"]}
 
 [tool.poetry.dev-dependencies]
 isort = "^5.1.4"

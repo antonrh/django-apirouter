@@ -16,6 +16,10 @@ _missing = object()
 
 
 class Request:
+    """
+    Request class.
+    """
+
     def __init__(self, request: HttpRequest):
         self._request = request
         self._json: Optional[Any] = _missing
@@ -28,10 +32,16 @@ class Request:
 
     @property
     def query_params(self) -> QueryDict:
+        """
+        Returns dictionary-like HTTP GET parameters.
+        """
         return cast(QueryDict, self._request.GET)
 
     @property
     def form(self) -> QueryDict:
+        """
+        Returns dictionary-like HTTP POST parameters.
+        """
         return cast(QueryDict, self._request.POST)
 
     @property
@@ -145,6 +155,9 @@ class Request:
         return self._request.readlines()
 
     def json(self) -> Any:
+        """
+        Get JSON content.
+        """
         if self._json is _missing:
             try:
                 self._json = json.loads(self.body)

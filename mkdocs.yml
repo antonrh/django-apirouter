@@ -8,6 +8,10 @@ theme:
     scheme: default
     primary: green
 
+plugins:
+  - search
+  - mkdocstrings
+
 repo_name: antonrh/django-apirouter
 repo_url: https://github.com/antonrh/django-apirouter
 edit_uri: ""
@@ -22,6 +26,4 @@ nav:
 - Settings: settings.md
 
 markdown_extensions:
-  - markdown.extensions.codehilite:
-      guess_lang: false
-  - mkautodoc
+  - codehilite
