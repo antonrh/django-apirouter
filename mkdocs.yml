@@ -1,6 +1,7 @@
 site_name: Django APIRouter
 site_description: Django API Router
 site_author: Anton Ruhlov
+site_url: https://github.com/antonrh/django-apirouter
 
 theme:
   name: material
