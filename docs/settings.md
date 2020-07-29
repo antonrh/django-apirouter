@@ -17,3 +17,12 @@ Default request class path.
 
 Default:
 `apirouter.request.Request`
+
+---
+
+***APIROUTER_DEFAULT_RESPONSE_CLASS***
+
+Default response class path.
+
+Default:
+`apirouter.response.JsonResponse`
