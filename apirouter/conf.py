@@ -1,4 +1,4 @@
-from typing import Any, Type, TypeVar
+from typing import Any, Type
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -8,8 +8,6 @@ from apirouter.exception_handler import exception_handler as default_exception_h
 from apirouter.request import Request
 from apirouter.response import JsonResponse
 from apirouter.types import ExceptionHandlerType
-
-T = TypeVar("T")
 
 
 def import_setting(setting_name: str, default: Any) -> Any:
