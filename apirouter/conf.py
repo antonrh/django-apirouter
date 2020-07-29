@@ -1,4 +1,4 @@
-from typing import Type, Union, cast
+from typing import Any, Type, TypeVar
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -9,29 +9,30 @@ from apirouter.request import Request
 from apirouter.response import JsonResponse
 from apirouter.types import ExceptionHandlerType
 
+T = TypeVar("T")
+
+
+def import_setting(setting_name: str, default: Any) -> Any:
+    target = getattr(settings, setting_name, default)
+    if isinstance(target, str):
+        return import_string(target)
+    return target
+
 
 def get_default_exception_handler() -> ExceptionHandlerType:
-    exception_handler: Union[str, ExceptionHandlerType] = getattr(
-        settings, "APIROUTER_DEFAULT_EXCEPTION_HANDLER", default_exception_handler
+    return import_setting(
+        setting_name="APIROUTER_DEFAULT_EXCEPTION_HANDLER",
+        default=default_exception_handler,
     )
-    if isinstance(exception_handler, str):
-        exception_handler = cast(ExceptionHandlerType, import_string(exception_handler))
-    return exception_handler
 
 
 def get_default_request_class() -> Type[Request]:
-    request_class: Union[str, Type[Request]] = getattr(
-        settings, "APIROUTER_DEFAULT_REQUEST_CLASS", Request
+    return import_setting(
+        setting_name="APIROUTER_DEFAULT_REQUEST_CLASS", default=Request
     )
-    if isinstance(request_class, str):
-        request_class = cast(Type[Request], import_string(request_class))
-    return request_class
 
 
 def get_default_response_class() -> Type[HttpResponse]:
-    response_class: Union[str, Type[HttpResponse]] = getattr(
-        settings, "APIROUTER_DEFAULT_RESPONSE_CLASS", JsonResponse
+    return import_setting(
+        setting_name="APIROUTER_DEFAULT_RESPONSE_CLASS", default=JsonResponse
     )
-    if isinstance(response_class, str):
-        response_class = cast(Type[HttpResponse], import_string(response_class))
-    return response_class
