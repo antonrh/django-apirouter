@@ -146,7 +146,7 @@ class Request:
         return self._request.read(*args, **kwargs)
 
     def readline(self, *args, **kwargs):
-        self._request.read(*args, **kwargs)
+        self._request.readline(*args, **kwargs)
 
     def __iter__(self):
         return self._request.__iter__()
