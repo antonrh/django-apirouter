@@ -170,3 +170,37 @@ def test_request_json_invalid(rf):
 
     assert exc.status_code == 400
     assert exc.detail == "Invalid JSON body."
+
+
+def test_request_user():
+    user = object()
+    request = Request(mock.Mock(user=user))
+
+    assert request.user == user
+
+
+def test_request_user_not_available(dummy_request: Request):
+    with pytest.raises(AttributeError) as exc_info:
+        _ = dummy_request.user
+
+    assert str(exc_info.value) == (
+        "To use user, please add `django.contrib.auth` to INSTALLED_APPS "
+        "and add `django.contrib.auth.middleware.AuthenticationMiddleware`"
+    )
+
+
+def test_request_session():
+    session = object()
+    request = Request(mock.Mock(session=session))
+
+    assert request.session == session
+
+
+def test_request_session_not_available(dummy_request: Request):
+    with pytest.raises(AttributeError) as exc_info:
+        _ = dummy_request.session
+
+    assert str(exc_info.value) == (
+        "To use session, please add `django.contrib.sessions` to INSTALLED_APPS "
+        "and add `django.contrib.sessions.middleware.SessionMiddleware`"
+    )

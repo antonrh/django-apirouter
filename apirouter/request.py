@@ -1,7 +1,8 @@
 import json
 from http import HTTPStatus
-from typing import Any, Dict, List, Mapping, Optional, cast
+from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Union, cast
 
+from django.contrib.sessions.backends.base import SessionBase
 from django.core.files.uploadhandler import FileUploadHandler
 from django.http import HttpRequest
 from django.http.request import RAISE_ERROR, HttpHeaders, QueryDict
@@ -11,6 +12,9 @@ from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
 from apirouter.exceptions import APIException
+
+if TYPE_CHECKING:
+    from django.contrib.auth.models import AnonymousUser, User  # pragma: no cover
 
 _missing = object()
 
@@ -166,3 +170,25 @@ class Request:
                     status_code=HTTPStatus.BAD_REQUEST, detail=_("Invalid JSON body.")
                 )
         return self._json
+
+    @property
+    def session(self) -> SessionBase:
+        session = getattr(self._request, "session", None)
+        if session is None:
+            raise AttributeError(
+                "To use session, please "
+                "add `django.contrib.sessions` to INSTALLED_APPS and "
+                "add `django.contrib.sessions.middleware.SessionMiddleware`"
+            )
+        return session
+
+    @property
+    def user(self) -> Union["User", "AnonymousUser"]:
+        user = getattr(self._request, "user", None)
+        if user is None:
+            raise AttributeError(
+                "To use user, please "
+                "add `django.contrib.auth` to INSTALLED_APPS and "
+                "add `django.contrib.auth.middleware.AuthenticationMiddleware`"
+            )
+        return user
