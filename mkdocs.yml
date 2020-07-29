@@ -11,7 +11,6 @@ theme:
 
 plugins:
   - search
-  - mkdocstrings
 
 repo_name: antonrh/django-apirouter
 repo_url: https://github.com/antonrh/django-apirouter
@@ -22,12 +21,10 @@ nav:
 - Routing: routing.md
 - Request: request.md
 - Response: response.md
+- Exception handling: exception_handling.md
 - Decorators: decorators.md
 - OpenAPI: openapi.md
 - Settings: settings.md
 
 markdown_extensions:
   - codehilite
-
-extra_css:
-  - css/extra.css
