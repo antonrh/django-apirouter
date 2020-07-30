@@ -1,7 +1,7 @@
-from dataclasses import dataclass, field
 from functools import wraps
 from typing import Callable, List, Optional, Type, Union
 
+import attr
 from django.http import HttpRequest, HttpResponse
 from django.urls import include, path as url_path
 from django.urls.resolvers import URLPattern
@@ -20,7 +20,7 @@ from apirouter.types import ExceptionHandlerType, RequestType
 from apirouter.utils import removeprefix
 
 
-@dataclass(frozen=True)
+@attr.dataclass(frozen=True)
 class APIViewFuncRoute:
     path: str
     view_func: Callable
@@ -28,29 +28,29 @@ class APIViewFuncRoute:
     name: Optional[str] = None
     request_class: Optional[Type[RequestType]] = None
 
-    def __post_init__(self):
+    def __attrs_post_init__(self):
         if self.methods:
             view_func = require_http_methods(self.methods)(self.view_func)
             object.__setattr__(self, "view_func", view_func)
 
 
-@dataclass(frozen=True)
+@attr.dataclass(frozen=True)
 class APIViewClassRoute:
     path: str
     view_class: Type[View]
-    view_func: Callable = field(init=False)
+    view_func: Callable = attr.ib(init=False)
     name: Optional[str] = None
     decorators: Optional[List[Callable]] = None
     request_class: Optional[Type[RequestType]] = None
 
-    def __post_init__(self):
+    def __attrs_post_init__(self):
         view_func = self.view_class.as_view()
         if self.decorators:
             view_func = compose_decorators(*self.decorators)(view_func)
         object.__setattr__(self, "view_func", view_func)
 
 
-@dataclass(frozen=True)
+@attr.dataclass(frozen=True)
 class APIIncludeRoute:
     router: "APIRouter"
     prefix: str = ""
