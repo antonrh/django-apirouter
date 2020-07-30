@@ -7,12 +7,12 @@ from apirouter import APIRouter
 router = APIRouter(name="named")
 
 
-@router.get("/", name="index")
+@router.route("/", name="index")
 def index(request):
     return
 
 
-@router.get("/<int:param>", name="detail")
+@router.route("/<int:param>", name="detail")
 def detail(request, param: int):
     return
 
@@ -20,7 +20,7 @@ def detail(request, param: int):
 inner_router = APIRouter(name="inner")
 
 
-@inner_router.get("/get", name="get")
+@inner_router.route("/get", name="get")
 def inner_get(request):
     return
 

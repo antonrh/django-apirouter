@@ -14,22 +14,22 @@ def exception_handler(request, exc):
 router = APIRouter(exception_handler=exception_handler)
 
 
-@router.get("/string")
+@router.route("/string")
 def handle_string(request):
     return "OK"
 
 
-@router.get("/dict")
+@router.route("/dict")
 def handle_dict(request):
     return {"success": True}
 
 
-@router.get("/list")
+@router.route("/list")
 def handle_list(request):
     return [1, 2, 3, 4, 5]
 
 
-@router.get("/error")
+@router.route("/error")
 def handle_error(request):
     raise APIException(status_code=400, detail="Error")
 

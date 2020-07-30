@@ -142,30 +142,6 @@ class APIRouter:
 
         return decorator
 
-    def get(self, path: str, *, name: Optional[str] = None) -> Callable:
-        return self.route(path, methods=["GET"], name=name)
-
-    def put(self, path: str, *, name: Optional[str] = None) -> Callable:
-        return self.route(path, methods=["PUT"], name=name)
-
-    def post(self, path: str, *, name: Optional[str] = None) -> Callable:
-        return self.route(path, methods=["POST"], name=name)
-
-    def delete(self, path: str, *, name: Optional[str] = None) -> Callable:
-        return self.route(path, methods=["DELETE"], name=name)
-
-    def options(self, path: str, *, name: Optional[str] = None) -> Callable:
-        return self.route(path, methods=["OPTIONS"], name=name)
-
-    def head(self, path: str, *, name: Optional[str] = None) -> Callable:
-        return self.route(path, methods=["HEAD"], name=name)
-
-    def patch(self, path: str, *, name: Optional[str] = None) -> Callable:
-        return self.route(path, methods=["PATCH"], name=name)
-
-    def trace(self, path: str, *, name: Optional[str] = None) -> Callable:
-        return self.route(path, methods=["TRACE"], name=name)
-
     def _build_urls(self) -> List[URLPattern]:
         """
         Build Django URL patterns sequence.

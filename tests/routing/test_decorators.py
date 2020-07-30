@@ -33,7 +33,7 @@ def make_decorator(key: str):
 router = APIRouter(decorators=[make_decorator("router1"), make_decorator("router2")])
 
 
-@router.get("/func")
+@router.route("/func", methods=["GET"])
 @make_decorator("func1")
 @make_decorator("func2")
 def func_get(request):
