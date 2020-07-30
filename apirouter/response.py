@@ -1,15 +1,20 @@
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from django.http.response import HttpResponse, JsonResponse as DjangoJsonResponse
+from django.utils.encoding import force_bytes
 
 from apirouter.utils import set_response_headers
 
 
 class Response(HttpResponse):
     def __init__(
-        self, content: bytes = b"", headers: Optional[dict] = None, *args, **kwargs
+        self,
+        content: Union[str, bytes] = b"",
+        headers: Optional[dict] = None,
+        *args,
+        **kwargs
     ):
-        super().__init__(content, *args, **kwargs)
+        super().__init__(force_bytes(content), *args, **kwargs)
 
         set_response_headers(self, headers)
 
