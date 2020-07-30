@@ -17,14 +17,15 @@ repo_url: https://github.com/antonrh/django-apirouter
 edit_uri: ""
 
 nav:
-- Introduction: index.md
-- Routing: routing.md
-- Request: request.md
-- Response: response.md
-- Exception handling: exception_handling.md
-- Decorators: decorators.md
-- OpenAPI: openapi.md
-- Settings: settings.md
+  - Introduction: index.md
+  - Routing: routing.md
+  - Request: request.md
+  - Response: response.md
+  - Exception handling: exception_handling.md
+  - Decorators: decorators.md
+  - OpenAPI: openapi.md
+  - Settings: settings.md
 
 markdown_extensions:
-  - codehilite
+  - markdown.extensions.codehilite:
+      guess_lang: false

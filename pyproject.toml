@@ -16,6 +16,7 @@ python = "^3.6"
 django = "^3.0.8"
 mkdocs = {version = "^1.1.2", extras = ["docs"]}
 mkdocs-material = {version = "^5.5.0", extras = ["docs"]}
+mkdocstrings = "^0.12.2"
 
 [tool.poetry.dev-dependencies]
 isort = "^5.1.4"

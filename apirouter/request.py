@@ -50,10 +50,16 @@ class Request:
 
     @property
     def files(self) -> MultiValueDict:
+        """
+        Returns dictionary-like object containing all uploaded files.
+        """
         return cast(MultiValueDict, self._request.FILES)
 
     @property
     def cookies(self) -> Dict[str, str]:
+        """
+        Returns dictionary-like cookies. Keys and values are strings.
+        """
         return self._request.COOKIES
 
     @property
