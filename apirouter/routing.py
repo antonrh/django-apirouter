@@ -142,7 +142,7 @@ class APIRouter:
 
         return decorator
 
-    def path(self, route: APIRouteType) -> URLPattern:
+    def path(self, route: Union[APIViewFuncRoute, APIViewClassRoute]) -> URLPattern:
         """
         Make route URL pattern.
         """
