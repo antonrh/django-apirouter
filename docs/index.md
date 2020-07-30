@@ -24,25 +24,15 @@ pip install django-apirouter
 In Django project `urls.py`:
 
 ```python
-from apirouter import APIRouter, Request
+from apirouter import APIRouter, Response, Request
 
 router = APIRouter()
 
 
 @router.route("/hello")
 def index(request: Request):
-    return "Hello, Django APIRouter!"
+    return Response("Hello, Django APIRouter!")
 
 
 urlpatterns = router.urls
-```
-
-## Check it
-
-***GET** `https://127.0.0.1:8000/hello`*
-
-Response [200 OK]:
-
-```json
-"Hello, Django APIRouter!"
 ```
