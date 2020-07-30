@@ -142,6 +142,18 @@ class APIRouter:
 
         return decorator
 
+    def path(self, route: APIRouteType) -> URLPattern:
+        """
+        Make route URL pattern.
+        """
+        return url_path(route.path, view=self._handle(route), name=route.name)
+
+    def include(self, route: APIIncludeRoute) -> URLPattern:
+        """
+        Make include URL pattern.
+        """
+        return url_path(route.prefix, include(route.router.urls))
+
     def _build_urls(self) -> List[URLPattern]:
         """
         Build Django URL patterns sequence.
@@ -150,11 +162,9 @@ class APIRouter:
 
         for route in self.routes:
             if isinstance(route, APIIncludeRoute):
-                urlpatterns.append(url_path(route.prefix, include(route.router.urls)))
+                urlpatterns.append(self.include(route))
             else:
-                urlpatterns.append(
-                    url_path(route.path, view=self._handle(route), name=route.name)
-                )
+                urlpatterns.append(self.path(route))
 
         return urlpatterns
 
