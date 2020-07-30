@@ -1,7 +1,8 @@
-from typing import Callable
+from typing import Callable, Union
 
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 
 from apirouter.request import Request
 
-ExceptionHandlerType = Callable[[Request, Exception], HttpResponse]
+RequestType = Union[HttpRequest, Request]
+ExceptionHandlerType = Callable[[RequestType, Exception], HttpResponse]

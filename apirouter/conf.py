@@ -7,7 +7,7 @@ from django.utils.module_loading import import_string
 from apirouter.exception_handler import exception_handler as default_exception_handler
 from apirouter.request import Request
 from apirouter.response import JsonResponse
-from apirouter.types import ExceptionHandlerType
+from apirouter.types import ExceptionHandlerType, RequestType
 
 
 def import_setting(setting_name: str, default: Any) -> Any:
@@ -24,7 +24,7 @@ def get_default_exception_handler() -> ExceptionHandlerType:
     )
 
 
-def get_default_request_class() -> Type[Request]:
+def get_default_request_class() -> Type[RequestType]:
     return import_setting(
         setting_name="APIROUTER_DEFAULT_REQUEST_CLASS", default=Request
     )

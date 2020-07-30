@@ -16,7 +16,7 @@ from apirouter.conf import (
 )
 from apirouter.decorators import compose_decorators
 from apirouter.request import Request
-from apirouter.types import ExceptionHandlerType
+from apirouter.types import ExceptionHandlerType, RequestType
 from apirouter.utils import removeprefix
 
 
@@ -26,6 +26,7 @@ class APIViewFuncRoute:
     view_func: Callable
     name: Optional[str] = None
     methods: Optional[List[str]] = None
+    request_class: Optional[Type[RequestType]] = None
 
     def __attrs_post_init__(self):
         if self.methods:
@@ -40,6 +41,7 @@ class APIViewClassRoute:
     name: Optional[str] = None
     decorators: Optional[List[Callable]] = None
     view_func: Callable = attr.ib(init=False)
+    request_class: Optional[Type[RequestType]] = None
 
     def __attrs_post_init__(self):
         view_func = self.view_class.as_view()
@@ -64,7 +66,7 @@ class APIRouter:
         name: Optional[str] = None,
         decorators: Optional[List[Callable]] = None,
         exception_handler: Optional[ExceptionHandlerType] = None,
-        request_class: Optional[Type[Request]] = None,
+        request_class: Optional[Type[RequestType]] = None,
         response_class: Optional[Type[HttpResponse]] = None,
     ):
         self.name = name
@@ -93,9 +95,16 @@ class APIRouter:
         *,
         methods: Optional[List[str]] = None,
         name: Optional[str] = None,
+        request_class: Optional[Type[RequestType]] = None,
     ) -> None:
         self.routes.append(
-            APIViewFuncRoute(path=path, view_func=view_func, name=name, methods=methods)
+            APIViewFuncRoute(
+                path=path,
+                view_func=view_func,
+                name=name,
+                methods=methods,
+                request_class=request_class,
+            )
         )
 
     def add_view(
@@ -105,10 +114,15 @@ class APIRouter:
         *,
         name: Optional[str] = None,
         decorators: Optional[List[Callable]] = None,
+        request_class: Optional[Type[RequestType]] = None,
     ) -> None:
         self.routes.append(
             APIViewClassRoute(
-                path=path, view_class=view_class, name=name, decorators=decorators
+                path=path,
+                view_class=view_class,
+                name=name,
+                decorators=decorators,
+                request_class=request_class,
             )
         )
 
@@ -118,11 +132,14 @@ class APIRouter:
         *,
         methods: Optional[List[str]] = None,
         name: Optional[str] = None,
+        request_class: Optional[Type[RequestType]] = None,
     ) -> Callable:
         path = removeprefix(path, prefix="/")
 
         def decorator(view_func: Callable):
-            self.add_route(path, view_func, methods=methods, name=name)
+            self.add_route(
+                path, view_func, methods=methods, name=name, request_class=request_class
+            )
             return view_func
 
         return decorator
@@ -133,11 +150,18 @@ class APIRouter:
         *,
         name: Optional[str] = None,
         decorators: Optional[List[Callable]] = None,
+        request_class: Optional[Type[RequestType]] = None,
     ) -> Callable:
         path = removeprefix(path, prefix="/")
 
         def decorator(view_class: Type[View]) -> Callable:
-            self.add_view(path, view_class, name=name, decorators=decorators)
+            self.add_view(
+                path,
+                view_class,
+                name=name,
+                decorators=decorators,
+                request_class=request_class,
+            )
             return view_class
 
         return decorator
@@ -175,14 +199,16 @@ class APIRouter:
 
         @wraps(route.view_func)
         def wrapped_view(request: HttpRequest, *args, **kwargs) -> HttpResponse:
-            wrapped_request = self.request_class(request)
+            request_class = route.request_class or self.request_class
+            if issubclass(request_class, Request):
+                request = request_class(request)
             try:
                 get_response = compose_decorators(*self.decorators)(route.view_func)
-                response = get_response(wrapped_request, *args, **kwargs)
+                response = get_response(request, *args, **kwargs)
                 if not isinstance(response, HttpResponse):
                     return self.response_class(response)
                 return response
             except Exception as exc:
-                return self.exception_handler(wrapped_request, exc)
+                return self.exception_handler(request, exc)
 
         return wrapped_view

@@ -4,11 +4,11 @@ from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpResponse
 
 from apirouter.exceptions import APIException
-from apirouter.request import Request
 from apirouter.response import JsonResponse
+from apirouter.types import RequestType
 
 
-def exception_handler(request: Request, exc: Exception) -> HttpResponse:
+def exception_handler(request: RequestType, exc: Exception) -> HttpResponse:
     if isinstance(exc, Http404):
         exc = APIException(status_code=HTTPStatus.NOT_FOUND)
     elif isinstance(exc, PermissionDenied):
