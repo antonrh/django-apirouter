@@ -24,6 +24,7 @@ from apirouter.utils import removeprefix
 class APIViewFuncRoute:
     path: str
     view_func: Callable
+    view_kwargs: Optional[dict] = None
     methods: Optional[List[str]] = None
     name: Optional[str] = None
     request_class: Optional[Type[RequestType]] = None
@@ -39,6 +40,7 @@ class APIViewClassRoute:
     path: str
     view_class: Type[View]
     view_func: Callable = attr.ib(init=False)
+    view_kwargs: Optional[dict] = None
     name: Optional[str] = None
     decorators: Optional[List[Callable]] = None
     request_class: Optional[Type[RequestType]] = None
@@ -94,14 +96,16 @@ class APIRouter:
         path: str,
         view_func: Callable,
         *,
-        methods: Optional[List[str]] = None,
+        view_kwargs: Optional[dict] = None,
         name: Optional[str] = None,
+        methods: Optional[List[str]] = None,
         request_class: Optional[Type[RequestType]] = None,
     ) -> None:
         self.routes.append(
             APIViewFuncRoute(
                 path=path,
                 view_func=view_func,
+                view_kwargs=view_kwargs,
                 name=name,
                 methods=methods,
                 request_class=request_class,
@@ -113,6 +117,7 @@ class APIRouter:
         path: str,
         view_class: Type[View],
         *,
+        view_kwargs: Optional[dict] = None,
         name: Optional[str] = None,
         decorators: Optional[List[Callable]] = None,
         request_class: Optional[Type[RequestType]] = None,
@@ -121,6 +126,7 @@ class APIRouter:
             APIViewClassRoute(
                 path=path,
                 view_class=view_class,
+                view_kwargs=view_kwargs,
                 name=name,
                 decorators=decorators,
                 request_class=request_class,
@@ -131,6 +137,7 @@ class APIRouter:
         self,
         path: str,
         *,
+        view_kwargs: Optional[dict] = None,
         methods: Optional[List[str]] = None,
         name: Optional[str] = None,
         request_class: Optional[Type[RequestType]] = None,
@@ -139,7 +146,12 @@ class APIRouter:
 
         def decorator(view_func: Callable):
             self.add_route(
-                path, view_func, methods=methods, name=name, request_class=request_class
+                path,
+                view_func,
+                view_kwargs=view_kwargs,
+                name=name,
+                methods=methods,
+                request_class=request_class,
             )
             return view_func
 
@@ -149,6 +161,7 @@ class APIRouter:
         self,
         path: str,
         *,
+        view_kwargs: Optional[dict] = None,
         name: Optional[str] = None,
         decorators: Optional[List[Callable]] = None,
         request_class: Optional[Type[RequestType]] = None,
@@ -159,6 +172,7 @@ class APIRouter:
             self.add_view(
                 path,
                 view_class,
+                view_kwargs=view_kwargs,
                 name=name,
                 decorators=decorators,
                 request_class=request_class,
@@ -167,13 +181,18 @@ class APIRouter:
 
         return decorator
 
-    def path(self, route: APIRoute) -> URLPattern:
+    def _path_route(self, route: APIRoute) -> URLPattern:
         """
         Make route URL pattern.
         """
-        return url_path(route.path, view=self._handle(route), name=route.name)
+        return url_path(
+            route.path,
+            view=self._handle(route),
+            kwargs=route.view_kwargs,
+            name=route.name,
+        )
 
-    def include(self, route: APIIncludeRoute) -> URLPattern:
+    def _include_route(self, route: APIIncludeRoute) -> URLPattern:
         """
         Make include URL pattern.
         """
@@ -187,9 +206,9 @@ class APIRouter:
 
         for route in self.routes:
             if isinstance(route, APIIncludeRoute):
-                urlpatterns.append(self.include(route))
+                urlpatterns.append(self._include_route(route))
             else:
-                urlpatterns.append(self.path(route))
+                urlpatterns.append(self._path_route(route))
 
         return urlpatterns
 
@@ -197,14 +216,22 @@ class APIRouter:
         """
         Handle route.
         """
+        request_class = route.request_class or self.request_class
+        return self._handle_view(route.view_func, request_class=request_class)
 
-        @wraps(route.view_func)
+    def _handle_view(
+        self, view: Callable, request_class: Type[RequestType]
+    ) -> Callable:
+        """
+        Handle view.
+        """
+
+        @wraps(view)
         def wrapped_view(request: HttpRequest, *args, **kwargs) -> HttpResponse:
-            request_class = route.request_class or self.request_class
             if issubclass(request_class, Request):
                 request = request_class(request)
             try:
-                get_response = compose_decorators(*self.decorators)(route.view_func)
+                get_response = compose_decorators(*self.decorators)(view)
                 response = get_response(request, *args, **kwargs)
                 if not isinstance(response, HttpResponse):
                     return self.response_class(response)
