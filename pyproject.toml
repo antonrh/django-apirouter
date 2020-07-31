@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-apirouter"
-version = "0.2.0"
+version = "0.2.1-dev0"
 description = "Django API router"
 authors = ["Anton Ruhlov <antonruhlov@gmail.com>"]
 license = "MIT"
