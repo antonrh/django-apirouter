@@ -51,10 +51,10 @@ class APIViewClassRoute:
         object.__setattr__(self, "path", removeprefix(self.path, prefix="/"))
         if inspect.isclass(self.view):
             view_func = self.view.as_view()
-            if self.decorators:
-                view_func = compose_decorators(*self.decorators)(view_func)
         else:
             view_func = self.view
+        if self.decorators:
+            view_func = compose_decorators(*self.decorators)(view_func)
         object.__setattr__(self, "view_func", view_func)
 
 
