@@ -145,3 +145,21 @@ reverse("root:users:list")  # returns /users/
 reverse("root:accounts:list")  # returns /accounts/
 reverse("root:accounts:detail", kwargs={"account_id": "100"})  # returns /accounts/100/
 ```
+
+## Path helper
+
+You can also add Django compatible path URL patters using router `.path(route, view, kwargs=None, name=None)` method.
+
+```python
+from apirouter import APIRouter, Request, Response
+
+
+def index(request: Request):
+    return Response("Router view")
+
+
+router = APIRouter()
+
+
+urlpatterns = [router.path("", index, name="index")]
+```

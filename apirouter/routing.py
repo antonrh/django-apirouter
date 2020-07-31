@@ -1,3 +1,4 @@
+import inspect
 from functools import wraps
 from typing import Callable, List, Optional, Type, Union
 
@@ -39,7 +40,7 @@ class APIViewFuncRoute:
 @attr.dataclass(frozen=True)
 class APIViewClassRoute:
     path: str
-    view_class: Type[View]
+    view: Union[Type[View], Callable]
     view_func: Callable = attr.ib(init=False)
     view_kwargs: Optional[dict] = None
     name: Optional[str] = None
@@ -48,9 +49,12 @@ class APIViewClassRoute:
 
     def __attrs_post_init__(self):
         object.__setattr__(self, "path", removeprefix(self.path, prefix="/"))
-        view_func = self.view_class.as_view()
-        if self.decorators:
-            view_func = compose_decorators(*self.decorators)(view_func)
+        if inspect.isclass(self.view):
+            view_func = self.view.as_view()
+            if self.decorators:
+                view_func = compose_decorators(*self.decorators)(view_func)
+        else:
+            view_func = self.view
         object.__setattr__(self, "view_func", view_func)
 
 
@@ -127,7 +131,7 @@ class APIRouter:
         self.routes.append(
             APIViewClassRoute(
                 path=path,
-                view_class=view_class,
+                view=view_class,
                 view_kwargs=view_kwargs,
                 name=name,
                 decorators=decorators,
@@ -178,6 +182,48 @@ class APIRouter:
             return view_class
 
         return decorator
+
+    def path(
+        self,
+        route: str,
+        view: Callable,
+        *,
+        kwargs: Optional[dict] = None,
+        name: Optional[str] = None,
+    ) -> URLPattern:
+        """
+        Django compatible path method.
+        """
+        request_class: Optional[Type[RequestType]]
+
+        if hasattr(view, "view_class"):
+            view_class: Type[View] = getattr(view, "view_class")
+            request_class = getattr(view_class, "__apirouter_request_class", None)
+            decorators: Optional[List[Callable]] = getattr(
+                view_class, "__apirouter_decorators", None
+            )
+            return self._path_route(
+                APIViewClassRoute(
+                    path=route,
+                    view=view,
+                    view_kwargs=kwargs,
+                    name=name,
+                    request_class=request_class,
+                    decorators=decorators,
+                )
+            )
+
+        request_class = getattr(view, "__apirouter_request_class", None)
+
+        return self._path_route(
+            APIViewFuncRoute(
+                path=route,
+                view_func=view,
+                view_kwargs=kwargs,
+                name=name,
+                request_class=request_class,
+            )
+        )
 
     def _path_route(self, route: APIRoute) -> URLPattern:
         """
