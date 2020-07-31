@@ -30,6 +30,7 @@ class APIViewFuncRoute:
     request_class: Optional[Type[RequestType]] = None
 
     def __attrs_post_init__(self):
+        object.__setattr__(self, "path", removeprefix(self.path, prefix="/"))
         if self.methods:
             view_func = require_http_methods(self.methods)(self.view_func)
             object.__setattr__(self, "view_func", view_func)
@@ -46,6 +47,7 @@ class APIViewClassRoute:
     request_class: Optional[Type[RequestType]] = None
 
     def __attrs_post_init__(self):
+        object.__setattr__(self, "path", removeprefix(self.path, prefix="/"))
         view_func = self.view_class.as_view()
         if self.decorators:
             view_func = compose_decorators(*self.decorators)(view_func)
@@ -142,8 +144,6 @@ class APIRouter:
         name: Optional[str] = None,
         request_class: Optional[Type[RequestType]] = None,
     ) -> Callable:
-        path = removeprefix(path, prefix="/")
-
         def decorator(view_func: Callable):
             self.add_route(
                 path,
@@ -166,8 +166,6 @@ class APIRouter:
         decorators: Optional[List[Callable]] = None,
         request_class: Optional[Type[RequestType]] = None,
     ) -> Callable:
-        path = removeprefix(path, prefix="/")
-
         def decorator(view_class: Type[View]) -> Callable:
             self.add_view(
                 path,
